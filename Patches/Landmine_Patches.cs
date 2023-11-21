@@ -11,6 +11,7 @@ namespace SpectateEnemy.Patches
             {
                 Spectatable s = __instance.gameObject.AddComponent<Spectatable>();
                 s.type = SpectatableType.Landmine;
+                s.name = "Landmine";
             }
         }
     }

@@ -7,7 +7,8 @@ namespace SpectateEnemy.Patches
     {
         private static void Postfix(EnemyAI __instance)
         {
-            __instance.gameObject.AddComponent<Spectatable>();
+            Spectatable s = __instance.gameObject.AddComponent<Spectatable>();
+            s.enemyName = __instance.enemyType.enemyName;
         }
     }
 }

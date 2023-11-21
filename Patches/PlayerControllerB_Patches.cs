@@ -88,7 +88,7 @@ namespace SpectateEnemy.Patches
                     return;
                 }
                 __instance.spectateCameraPivot.position = position.Value + Vector3.up * 0.7f;
-                HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.name.Replace("(Clone)", "") + ")";
+                HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
                 Plugin.raycastSpectate.Invoke(__instance, Array.Empty<object>());
             }
         }

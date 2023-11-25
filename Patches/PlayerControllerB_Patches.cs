@@ -9,16 +9,19 @@ namespace SpectateEnemy.Patches
     internal class Handler {
         public static Spectatable[] spectatorList;
 
-        public static bool Spectate(PlayerControllerB __instance)
+        public static bool Spectate()
         {        
-            if (Plugin.spectatedEnemyIndex > -1)
+            if (Plugin.spectatingEnemies)
             {
+                if (spectatorList.Length == 0)
+                {
+                    Plugin.spectatingEnemies = false;
+                    return true;
+                }
                 Plugin.spectatedEnemyIndex++;
                 if (Plugin.spectatedEnemyIndex >= spectatorList.Length)
                 {
-                    __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
-                    Plugin.spectatedEnemyIndex = -1;
-                    return true;
+                    Plugin.spectatedEnemyIndex = 0;
                 }
                 return false;
             }
@@ -33,7 +36,23 @@ namespace SpectateEnemy.Patches
         {
             if (__instance.IsOwner && __instance.isPlayerDead && (!__instance.IsServer || __instance.isHostPlayerObject))
             {
-                return Handler.Spectate(__instance);
+                Plugin.spectatingEnemies = !Plugin.spectatingEnemies;
+                if (Plugin.spectatingEnemies)
+                {
+                    Handler.spectatorList = UnityEngine.Object.FindObjectsByType<Spectatable>(FindObjectsSortMode.None);
+                    if (Handler.spectatorList.Length == 0)
+                    {
+                        Plugin.spectatingEnemies = false;
+                        return true;
+                    }
+                    Plugin.spectatedEnemyIndex = 0;
+                    __instance.spectatedPlayerScript = null;
+                }
+                else
+                {
+                    Plugin.spectatedEnemyIndex = -1;
+                    __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
+                }
             }
             return true;
         }
@@ -46,7 +65,7 @@ namespace SpectateEnemy.Patches
         {
             if (__instance.IsOwner && __instance.isPlayerDead && (!__instance.IsServer || __instance.isHostPlayerObject))
             {
-                return Handler.Spectate(__instance);
+                return Handler.Spectate();
             }
             return true;
         }
@@ -57,13 +76,16 @@ namespace SpectateEnemy.Patches
     {
         private static void Postfix(PlayerControllerB __instance)
         {
-            if (Plugin.spectatedEnemyIndex > -1)
+            if (Plugin.spectatingEnemies)
             {
+                if (Handler.spectatorList.Length == 0)
+                {
+                    Plugin.spectatingEnemies = false;
+                    return;
+                }
                 if (Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
                 {
-                    __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
-                    Plugin.spectatedEnemyIndex = -1;
-                    return;
+                    Plugin.spectatedEnemyIndex = 0;
                 }
                 Spectatable currentEnemy = Handler.spectatorList[Plugin.spectatedEnemyIndex];
                 if (currentEnemy == null)
@@ -71,8 +93,7 @@ namespace SpectateEnemy.Patches
                     Plugin.spectatedEnemyIndex++;
                     if (Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
                     {
-                        __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
-                        Plugin.spectatedEnemyIndex = -1;
+                        Plugin.spectatedEnemyIndex = 0;
                     }
                     return;
                 }
@@ -82,15 +103,24 @@ namespace SpectateEnemy.Patches
                     Plugin.spectatedEnemyIndex++;
                     if (Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
                     {
-                        __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
-                        Plugin.spectatedEnemyIndex = -1;
+                        Plugin.spectatedEnemyIndex = 0;
                     }
                     return;
                 }
-                __instance.spectateCameraPivot.position = position.Value + Vector3.up * 0.7f;
+                __instance.spectateCameraPivot.position = position.Value + GetZoomDistance(currentEnemy);
                 HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
-                Plugin.raycastSpectate.Invoke(__instance, Array.Empty<object>());
+                Plugin.raycastSpectate.Invoke(__instance, []);
             }
+        }
+
+        private static Vector3 GetZoomDistance(Spectatable obj)
+        {
+            if (obj.enemyName == "ForestGiant")
+                return Vector3.up * 3;
+            if (obj.enemyName == "MouthDog" || obj.enemyName == "Jester")
+                return Vector3.up * 2;
+            else
+                return Vector3.up;
         }
 
         private static Vector3? GetSpectatePosition(Spectatable obj)
@@ -129,31 +159,6 @@ namespace SpectateEnemy.Patches
         private static bool Prefix()
         {
             return Plugin.spectatedEnemyIndex == -1;
-        }
-
-        private static void Postfix(PlayerControllerB __instance)
-        {
-            if (__instance.spectatedPlayerScript != null)
-            {
-                // keep track of this so we know when we loop back to the first player
-                // when we do, we should start spectating enemies
-                if (Plugin.firstPlayerSpectated == null)
-                {
-                    Plugin.firstPlayerSpectated = __instance.spectatedPlayerScript.playerClientId;
-                    return;
-                }
-                if (Plugin.firstPlayerSpectated == __instance.spectatedPlayerScript.playerClientId)
-                {
-                    Handler.spectatorList = UnityEngine.Object.FindObjectsByType<Spectatable>(FindObjectsSortMode.None);
-                    if (Handler.spectatorList.Length == 0)
-                    {
-                        return;
-                    }
-                    Plugin.spectatedEnemyIndex = 0;
-                    __instance.spectatedPlayerScript = null;
-                    Plugin.firstPlayerSpectated = null;
-                }
-            }
         }
     }
 }

@@ -45,12 +45,10 @@ namespace SpectateEnemy.Patches
                         Plugin.spectatingEnemies = false;
                         return true;
                     }
-                    Plugin.spectatedEnemyIndex = 0;
                     __instance.spectatedPlayerScript = null;
                 }
                 else
                 {
-                    Plugin.spectatedEnemyIndex = -1;
                     __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
                 }
             }
@@ -158,7 +156,7 @@ namespace SpectateEnemy.Patches
     {
         private static bool Prefix()
         {
-            return Plugin.spectatedEnemyIndex == -1;
+            return !Plugin.spectatingEnemies;
         }
     }
 }

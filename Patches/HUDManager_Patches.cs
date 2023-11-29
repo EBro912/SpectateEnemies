@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using UnityEngine;
 
 namespace SpectateEnemy.Patches
 {
@@ -9,7 +10,17 @@ namespace SpectateEnemy.Patches
         {
             if (GameNetworkManager.Instance.localPlayerController.isPlayerDead && !TimeOfDay.Instance.shipLeavingAlertCalled)
             {
-                __instance.holdButtonToEndGameEarlyText.text += "\nToggle between Players/Enemies\n: [E]";
+                // who needs to change the y position when u can just \n :sunglasses:
+                __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSwitch to {(Plugin.spectatingEnemies ? "Players" : "Enemies")}: [E]\nToggle Flashlight : [RMB] (Click)";
+                if (__instance.playerActions.Movement.PingScan.WasReleasedThisFrame())
+                {
+                    // flashlight already exists on spectator camera, thanks zeekerss
+                    Light light = __instance.playersManager.spectateCamera.GetComponent<Light>();
+                    if (light != null)
+                    {
+                        light.enabled = !light.enabled;
+                    }
+                }
             }
         }
     }

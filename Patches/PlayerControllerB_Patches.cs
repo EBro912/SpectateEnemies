@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System.Linq;
 using GameNetcodeStuff;
-using System;
 using UnityEngine;
 
 namespace SpectateEnemy.Patches
@@ -39,11 +38,15 @@ namespace SpectateEnemy.Patches
                 Plugin.spectatingEnemies = !Plugin.spectatingEnemies;
                 if (Plugin.spectatingEnemies)
                 {
-                    Handler.spectatorList = UnityEngine.Object.FindObjectsByType<Spectatable>(FindObjectsSortMode.None);
+                    Handler.spectatorList = Object.FindObjectsByType<Spectatable>(FindObjectsSortMode.None);
                     if (Handler.spectatorList.Length == 0)
                     {
                         Plugin.spectatingEnemies = false;
                         return true;
+                    }
+                    if (Plugin.spectatedEnemyIndex == -1 || Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
+                    {
+                        Plugin.spectatedEnemyIndex = 0;
                     }
                     __instance.spectatedPlayerScript = null;
                 }
@@ -105,9 +108,28 @@ namespace SpectateEnemy.Patches
                     }
                     return;
                 }
+                if (currentEnemy.enemyName == "Enemy")
+                {
+                    TryFixName(ref currentEnemy);
+                }
                 __instance.spectateCameraPivot.position = position.Value + GetZoomDistance(currentEnemy);
                 HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
                 Plugin.raycastSpectate.Invoke(__instance, []);
+            }
+        }
+
+        private static void TryFixName(ref Spectatable obj)
+        {
+            if (obj.gameObject.TryGetComponent(out EnemyAI enemy)) {
+                obj.enemyName = enemy.enemyType.enemyName;
+            }
+            else if (obj.gameObject.TryGetComponent<Turret>(out _))
+            {
+                obj.enemyName = "Turret";
+            }
+            else if (obj.gameObject.TryGetComponent<Landmine>(out _))
+            {
+                obj.enemyName = "Landmine";
             }
         }
 

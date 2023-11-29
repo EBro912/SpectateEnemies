@@ -4,6 +4,8 @@
 ## Usage
 When dead, pressing your "Interact" key (default: E) will swap between spectating players and spectating enemies. When spectating either side, you can left click to move to the next player or enemy as normal. The mod will also remember your last spectated enemy, as long as they are still alive.
 
+Pressing RMB will toggle a flashlight on your spectator camera, allowing you to see better in darker areas.
+
 ## Config Options
 Located in `BepInEx/config/SpectateEnemy.cfg`
 

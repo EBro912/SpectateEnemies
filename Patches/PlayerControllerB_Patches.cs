@@ -59,12 +59,12 @@ namespace SpectateEnemy.Patches
         }
     }
 
-    [HarmonyPatch(typeof(PlayerControllerB), "Use_performed")]
+    [HarmonyPatch(typeof(PlayerControllerB), "ActivateItem_performed")]
     public class PlayerControllerB_Use
     {
         private static bool Prefix(PlayerControllerB __instance)
         {
-            if (__instance.IsOwner && __instance.isPlayerDead && (!__instance.IsServer || __instance.isHostPlayerObject))
+            if (__instance.IsOwner && __instance.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!__instance.IsServer || __instance.isHostPlayerObject))
             {
                 return Handler.Spectate();
             }

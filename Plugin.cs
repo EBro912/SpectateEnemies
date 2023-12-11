@@ -12,6 +12,7 @@ public class Plugin : BaseUnityPlugin
     public static int spectatedEnemyIndex = -1;
     public static bool spectatingEnemies = false;
     public static MethodInfo raycastSpectate = null;
+    public static MethodInfo displaySpectatorTip = null;
 
     private ConfigEntry<bool> spectateTurrets;
     private ConfigEntry<bool> spectateLandmines;
@@ -35,6 +36,7 @@ public class Plugin : BaseUnityPlugin
         harmony.PatchAll();
 
         raycastSpectate = AccessTools.Method(typeof(PlayerControllerB), "RaycastSpectateCameraAroundPivot");
+        displaySpectatorTip = AccessTools.Method(typeof(HUDManager), "DisplaySpectatorTip");
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} loaded!");
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using GameNetcodeStuff;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace SpectateEnemy.Patches
 {
@@ -33,7 +34,7 @@ namespace SpectateEnemy.Patches
     {
         private static bool Prefix(PlayerControllerB __instance)
         {
-            if (__instance.IsOwner && __instance.isPlayerDead && (!__instance.IsServer || __instance.isHostPlayerObject))
+            if (__instance.IsOwner && __instance.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!__instance.IsServer || __instance.isHostPlayerObject))
             {
                 Plugin.spectatingEnemies = !Plugin.spectatingEnemies;
                 if (Plugin.spectatingEnemies)
@@ -42,7 +43,8 @@ namespace SpectateEnemy.Patches
                     if (Handler.spectatorList.Length == 0)
                     {
                         Plugin.spectatingEnemies = false;
-                        return true;
+                        Plugin.displaySpectatorTip.Invoke(HUDManager.Instance, ["No enemies to spectate"]);
+                        return false;
                     }
                     if (Plugin.spectatedEnemyIndex == -1 || Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
                     {

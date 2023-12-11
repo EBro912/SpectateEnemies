@@ -48,18 +48,25 @@ namespace SpectateEnemy.Patches
                     }
                     if (Plugin.spectatedEnemyIndex == -1 || Plugin.spectatedEnemyIndex >= Handler.spectatorList.Length)
                     {
-                        float closest = float.MaxValue;
-                        int index = 0;
-                        for (int i = 0; i < Handler.spectatorList.Length; i++)
+                        if (__instance.spectatedPlayerScript == null)
                         {
-                            float dist = Vector3.Distance(__instance.spectatedPlayerScript.transform.position, Handler.spectatorList[i].transform.position);
-                            if (dist < closest)
-                            {
-                                closest = dist;
-                                index = i;
-                            }
+                            Plugin.spectatedEnemyIndex = 0;
                         }
-                        Plugin.spectatedEnemyIndex = index;
+                        else
+                        {
+                            float closest = 999999f;
+                            int index = 0;
+                            for (int i = 0; i < Handler.spectatorList.Length; i++)
+                            {
+                                float dist = (Handler.spectatorList[i].transform.position - __instance.spectatedPlayerScript.transform.position).sqrMagnitude;
+                                if (dist < closest * closest)
+                                {
+                                    closest = dist;
+                                    index = i;
+                                }
+                            }
+                            Plugin.spectatedEnemyIndex = index;
+                        }
                     }
                     __instance.spectatedPlayerScript = null;
                 }

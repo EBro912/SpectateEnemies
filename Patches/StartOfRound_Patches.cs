@@ -3,12 +3,12 @@
 namespace SpectateEnemy.Patches
 {
     [HarmonyPatch(typeof(StartOfRound), "ShipLeave")]
-    public class StartOfRound_Patches
+    internal class StartOfRound_Patches
     {
         private static void Postfix()
         {
-            Plugin.spectatedEnemyIndex = -1;
-            Plugin.spectatingEnemies = false;
+            SpectateEnemies.Instance.SpectatedEnemyIndex = -1;
+            SpectateEnemies.Instance.SpectatingEnemies = false;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
 using GameNetcodeStuff;
 using HarmonyLib;
 using System.Reflection;

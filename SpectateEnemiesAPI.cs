@@ -7,7 +7,7 @@ namespace SpectateEnemy
         /// <summary>
         /// Returns true if Spectate Enemies is loaded and ready
         /// </summary>
-        public static bool IsSpectateEnemiesReady => SpectateEnemies.Instance != null;
+        public static bool IsLoaded => SpectateEnemies.Instance != null;
 
         /// <summary>
         /// Returns true if the player is currently spectating an enemy

@@ -185,6 +185,7 @@ namespace SpectateEnemy
             else
             {
                 __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
+                HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + __instance.spectatedPlayerScript.playerUsername + ")";
             }
         }
 

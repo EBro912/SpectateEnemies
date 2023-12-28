@@ -9,7 +9,7 @@ namespace SpectateEnemy.Patches
     {
         private static void Postfix(HUDManager __instance)
         {
-            if (GameNetworkManager.Instance.localPlayerController.hasBegunSpectating)
+            if (GameNetworkManager.Instance.localPlayerController != null && GameNetworkManager.Instance.localPlayerController.hasBegunSpectating)
             {
                 if (StartOfRound.Instance.shipIsLeaving)
                 {

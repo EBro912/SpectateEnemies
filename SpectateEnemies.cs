@@ -36,7 +36,10 @@ namespace SpectateEnemy
         private void Update()
         {
             if (Keyboard.current.insertKey.wasPressedThisFrame)
-                Toggle();
+            {
+                if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController.hasBegunSpectating)
+                    Toggle();
+            }
         }
 
         private void LateUpdate()
@@ -290,6 +293,11 @@ namespace SpectateEnemy
         public void Toggle()
         {
             WindowOpen = !WindowOpen;
+        }
+
+        public void Hide()
+        {
+            WindowOpen = false;
         }
 
         private void OnGUI()

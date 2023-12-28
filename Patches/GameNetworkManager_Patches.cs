@@ -9,6 +9,7 @@ namespace SpectateEnemy.Patches
         {
             SpectateEnemies.Instance.SpectatedEnemyIndex = -1;
             SpectateEnemies.Instance.SpectatingEnemies = false;
+            SpectateEnemies.Instance.Hide();
         }
     }
 }

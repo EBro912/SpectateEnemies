@@ -13,6 +13,7 @@ namespace SpectateEnemy.Patches
             {
                 if (StartOfRound.Instance.shipIsLeaving)
                 {
+                    SpectateEnemies.Instance.Hide();
                     Light light = __instance.playersManager.spectateCamera.GetComponent<Light>();
                     if (light != null)
                     {

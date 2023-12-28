@@ -56,7 +56,7 @@ namespace SpectateEnemy
                     GetNextValidSpectatable();
                     return;
                 }
-                Spectatable currentEnemy = SpectatorList[SpectatedEnemyIndex];
+                Spectatable currentEnemy = SpectatorList.ElementAtOrDefault(SpectatedEnemyIndex);
                 if (currentEnemy == null)
                 {
                     GetNextValidSpectatable();
@@ -173,6 +173,13 @@ namespace SpectateEnemy
                         SpectatedEnemyIndex = index;
                     }
                 }
+                else
+                {
+                    if (!settings[SpectatorList[SpectatedEnemyIndex].enemyName])
+                    {
+                        GetNextValidSpectatable();
+                    }
+                }
                 __instance.spectatedPlayerScript = null;
             }
             else
@@ -260,15 +267,19 @@ namespace SpectateEnemy
         private void GetNextValidSpectatable()
         {
             int enemiesChecked = 0;
+            int current = SpectatedEnemyIndex;
             while (enemiesChecked < SpectatorList.Length)
             {
-                SpectatedEnemyIndex++;
-                if (SpectatedEnemyIndex >= SpectatorList.Length)
+                current++;
+                if (current >= SpectatorList.Length)
                 {
-                    SpectatedEnemyIndex = 0;
+                    current = 0;
                 }
-                if (settings[SpectatorList[SpectatedEnemyIndex].enemyName])
+                if (settings[SpectatorList[current].enemyName])
+                {
+                    SpectatedEnemyIndex = current;
                     return;
+                }
                 enemiesChecked++;
             }
             SpectatingEnemies = false;
@@ -298,6 +309,11 @@ namespace SpectateEnemy
         public void Hide()
         {
             WindowOpen = false;
+        }
+
+        public bool IsMenuOpen()
+        {
+            return WindowOpen;
         }
 
         private void OnGUI()

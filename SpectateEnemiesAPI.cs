@@ -20,7 +20,7 @@ namespace SpectateEnemy
         /// <returns>The parent <see cref="GameObject"/> of the enemy if the player is spectating an enemy, otherwise null</returns>
         public static GameObject CurrentEnemySpectating()
         {
-            if (IsSpectatingEnemies && SpectateEnemies.Instance.SpectatedEnemyIndex > 0)
+            if (IsSpectatingEnemies && SpectateEnemies.Instance.SpectatedEnemyIndex > -1)
             {
                 return SpectateEnemies.Instance.SpectatorList[SpectateEnemies.Instance.SpectatedEnemyIndex].gameObject;
             }

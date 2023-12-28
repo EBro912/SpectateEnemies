@@ -24,6 +24,10 @@ namespace SpectateEnemy.Patches
         {
             if (__instance.IsOwner && __instance.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!__instance.IsServer || __instance.isHostPlayerObject))
             {
+                if (SpectateEnemies.Instance.IsMenuOpen())
+                {
+                    return false;
+                }
                 if (SpectateEnemies.Instance.SpectatingEnemies)
                 {
                     SpectateEnemies.Instance.SpectateNextEnemy();

@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using GameNetcodeStuff;
+using HarmonyLib;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,29 +10,26 @@ namespace SpectateEnemy.Patches
     {
         private static void Postfix(HUDManager __instance)
         {
-            if (GameNetworkManager.Instance.localPlayerController != null && GameNetworkManager.Instance.localPlayerController.hasBegunSpectating)
+            if (GameNetworkManager.Instance.localPlayerController != null && GameNetworkManager.Instance.localPlayerController != null)
             {
-                if (StartOfRound.Instance.shipIsLeaving)
+                PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+                if (player.isPlayerDead)
                 {
-                    SpectateEnemies.Instance.Hide();
-                    Light light = __instance.playersManager.spectateCamera.GetComponent<Light>();
-                    if (light != null)
+                    if (StartOfRound.Instance.shipIsLeaving)
                     {
-                        light.enabled = false;
+                        SpectateEnemies.Instance.Hide();
+                        Light light = __instance.playersManager.spectateCamera.GetComponent<Light>();
+                        if (light != null)
+                        {
+                            light.enabled = false;
+                        }
+                        return;
                     }
-                    return;
-                }
-                string swapKey = InputControlPath.ToHumanReadableString(__instance.playerActions.Movement.Interact.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);                // who needs to change the y position when u can just \n :sunglasses:
-                // who needs to change the y position when u can just \n: sunglasses:
-                __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSwitch to {(SpectateEnemies.Instance.SpectatingEnemies ? "Players" : "Enemies")}: [{swapKey}]\nToggle Flashlight : [RMB] (Click)\nConfig Menu : [Insert]";
-                if (__instance.playerActions.Movement.PingScan.WasReleasedThisFrame())
-                {
-                    // flashlight already exists on spectator camera, thanks zeekerss
-                    Light light = __instance.playersManager.spectateCamera.GetComponent<Light>();
-                    if (light != null)
-                    {
-                        light.enabled = !light.enabled;
-                    }
+                    string swapKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.SwapKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                    string menuKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.MenuKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                    string flashlightKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.FlashlightKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+                    // who needs to change the y position when u can just \n: sunglasses:
+                    __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSwitch to {(SpectateEnemies.Instance.SpectatingEnemies ? "Players" : "Enemies")}: [{swapKey}]\nToggle Flashlight : [{flashlightKey}] (Click)\nConfig Menu : [{menuKey}]";
                 }
             }
         }

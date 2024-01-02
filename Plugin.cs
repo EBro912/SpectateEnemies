@@ -6,10 +6,13 @@ using System.Reflection;
 namespace SpectateEnemy;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency("com.rune580.LethalCompanyInputUtils", BepInDependency.DependencyFlags.HardDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     public static MethodInfo raycastSpectate = null;
     public static MethodInfo displaySpectatorTip = null;
+
+    public static Inputs Inputs = new();
 
     private Harmony harmony;
 

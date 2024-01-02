@@ -6,12 +6,14 @@ namespace SpectateEnemy
     {
         public SpectatableType type = SpectatableType.Enemy;
         public string enemyName = "Enemy";
+        public string maskedName = string.Empty;
     }
 
     internal enum SpectatableType
     {
         Enemy,
         Turret,
-        Landmine
+        Landmine,
+        Masked
     }
 }

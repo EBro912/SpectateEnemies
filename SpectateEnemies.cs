@@ -23,23 +23,66 @@ namespace SpectateEnemy
         public bool SpectatingEnemies = false;
         public Spectatable[] SpectatorList;
 
-        private void Start()
+        private void Awake()
         {
             if (Instance != null)
             {
                 Destroy(gameObject);
             }
+            SetupKeybinds();
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
 
-        private void Update()
+        private void SetupKeybinds()
         {
-            if (Keyboard.current.insertKey.wasPressedThisFrame)
+            Plugin.Inputs.SwapKey.performed += OnSwapKeyPressed;
+            Plugin.Inputs.MenuKey.performed += OnMenuKeyPressed;
+            Plugin.Inputs.FlashlightKey.performed += OnFlashlightKeyPressed;
+        }
+
+        private void OnSwapKeyPressed(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null)
             {
-                if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController.hasBegunSpectating)
-                    Toggle();
+                PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+                if (player.IsOwner && player.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!player.IsServer || player.isHostPlayerObject))
+                {
+                    ToggleSpectatingMode(player);
+                }
             }
+        }
+
+        private void OnMenuKeyPressed(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null)
+            {
+                PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+                if (player.IsOwner && player.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!player.IsServer || player.isHostPlayerObject))
+                {
+                    Toggle();
+                }
+            }
+        }
+
+        private void OnFlashlightKeyPressed(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null)
+            {
+                PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+                if (HUDManager.Instance != null && player.IsOwner && player.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!player.IsServer || player.isHostPlayerObject))
+                {
+                    // flashlight already exists on spectator camera, thanks zeekerss
+                    Light light = HUDManager.Instance.playersManager.spectateCamera.GetComponent<Light>();
+                    if (light != null)
+                    {
+                        light.enabled = !light.enabled;
+                    }
+                }
+            }  
         }
 
         private void LateUpdate()
@@ -73,7 +116,10 @@ namespace SpectateEnemy
                     TryFixName(ref currentEnemy);
                 }
                 HUDManager.Instance.localPlayer.spectateCameraPivot.position = position.Value + GetZoomDistance(currentEnemy);
-                HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
+                if (currentEnemy.type == SpectatableType.Masked && currentEnemy.maskedName != string.Empty)
+                    HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.maskedName + ")";
+                else
+                    HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
                 Plugin.raycastSpectate.Invoke(HUDManager.Instance.localPlayer, []);
             }
         }
@@ -119,7 +165,18 @@ namespace SpectateEnemy
 
         private void TryFixName(ref Spectatable obj)
         {
-            if (obj.gameObject.TryGetComponent(out EnemyAI enemy))
+            if (obj.gameObject.TryGetComponent(out MaskedPlayerEnemy masked))
+            {
+                if (masked.mimickingPlayer != null)
+                {
+                    obj.enemyName = masked.mimickingPlayer.playerUsername;
+                }
+                else
+                {
+                    obj.enemyName = masked.enemyType.enemyName;
+                }
+            }
+            else if (obj.gameObject.TryGetComponent(out EnemyAI enemy))
             {
                 obj.enemyName = enemy.enemyType.enemyName;
             }
@@ -184,7 +241,7 @@ namespace SpectateEnemy
             }
             else
             {
-                __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead);
+                __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead && x.isPlayerControlled);
                 HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + __instance.spectatedPlayerScript.playerUsername + ")";
             }
         }

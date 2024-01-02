@@ -9,14 +9,11 @@ namespace SpectateEnemy.Patches
         private static void Postfix(MaskedPlayerEnemy __instance)
         {
             Spectatable s = __instance.gameObject.AddComponent<Spectatable>();
+            s.type = SpectatableType.Masked;
+            s.enemyName = __instance.enemyType.enemyName;
             if (__instance.mimickingPlayer != null)
             {
-                // at least i can do this now
-                s.enemyName = __instance.mimickingPlayer.playerUsername;
-            }
-            else
-            {
-                s.enemyName = __instance.enemyType.enemyName;
+                s.maskedName = __instance.mimickingPlayer.playerUsername;
             }
         }
     }

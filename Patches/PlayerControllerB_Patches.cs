@@ -3,20 +3,6 @@ using GameNetcodeStuff;
 
 namespace SpectateEnemy.Patches
 {
-    [HarmonyPatch(typeof(PlayerControllerB), "Interact_performed")]
-    internal class PlayerControllerB_Interact
-    {
-        private static bool Prefix(PlayerControllerB __instance)
-        {
-            if (__instance.IsOwner && __instance.isPlayerDead && !StartOfRound.Instance.shipIsLeaving && (!__instance.IsServer || __instance.isHostPlayerObject))
-            {
-                SpectateEnemies.Instance.ToggleSpectatingMode(__instance);
-                return false;
-            }
-            return true;
-        }
-    }
-
     [HarmonyPatch(typeof(PlayerControllerB), "ActivateItem_performed")]
     internal class PlayerControllerB_Use
     {

@@ -126,7 +126,7 @@ namespace SpectateEnemy
 
         private Vector3? GetSpectatePosition(Spectatable obj)
         {
-            if (obj.type == SpectatableType.Enemy)
+            if (obj.type == SpectatableType.Enemy || obj.type == SpectatableType.Masked)
             {
                 EnemyAI enemy = obj.GetComponent<EnemyAI>();
                 if (enemy != null)

@@ -9,6 +9,7 @@ namespace SpectateEnemy.Patches
         {
             Spectatable s = __instance.gameObject.AddComponent<Spectatable>();
             s.enemyName = __instance.enemyType.enemyName;
+            s.enemyInstance = __instance;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SpectateEnemy
 {
@@ -7,6 +8,7 @@ namespace SpectateEnemy
         public SpectatableType type = SpectatableType.Enemy;
         public string enemyName = "Enemy";
         public string maskedName = string.Empty;
+        public EnemyAI enemyInstance = null;
     }
 
     internal enum SpectatableType

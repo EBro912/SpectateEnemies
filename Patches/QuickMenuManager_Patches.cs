@@ -12,7 +12,7 @@ namespace SpectateEnemy.Patches
             {
                 GameObject obj = new("SpectateEnemiesObject");
                 SpectateEnemies spec = obj.AddComponent<SpectateEnemies>();
-                spec.PopulateSettings(__instance.testAllEnemiesLevel);
+                spec.PopulateSettings();
             }
         }
     }

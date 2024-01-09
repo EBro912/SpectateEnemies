@@ -15,6 +15,7 @@ namespace SpectateEnemy.Patches
             {
                 s.maskedName = __instance.mimickingPlayer.playerUsername;
             }
+            s.enemyInstance = __instance;
         }
     }
 }

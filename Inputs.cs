@@ -13,5 +13,11 @@ namespace SpectateEnemy
 
         [InputAction("<Mouse>/rightButton", Name = "Toggle Flashlight")]
         public InputAction FlashlightKey { get; set; }
+
+        [InputAction("<Mouse>/scroll/down", Name = "Zoom Out")]
+        public InputAction ZoomOutKey { get; set; }
+
+        [InputAction("<Mouse>/scroll/up", Name = "Zoom In")]
+        public InputAction ZoomInKey { get; set; }
     }
 }

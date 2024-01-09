@@ -17,11 +17,12 @@ namespace SpectateEnemy
         private static readonly Dictionary<string, bool> settings = [];
 
         private bool WindowOpen = false;
-        private Rect window = new(10, 10, 500, 300);
+        private Rect window = new(10, 10, 500, 400);
 
         public int SpectatedEnemyIndex = -1;
         public bool SpectatingEnemies = false;
         public Spectatable[] SpectatorList;
+        public float zoomLevel = 1f;
 
         private void Awake()
         {
@@ -39,6 +40,8 @@ namespace SpectateEnemy
             Plugin.Inputs.SwapKey.performed += OnSwapKeyPressed;
             Plugin.Inputs.MenuKey.performed += OnMenuKeyPressed;
             Plugin.Inputs.FlashlightKey.performed += OnFlashlightKeyPressed;
+            Plugin.Inputs.ZoomOutKey.performed += OnZoomOutPressed;
+            Plugin.Inputs.ZoomInKey.performed += OnZoomInPressed;
         }
 
         private void OnSwapKeyPressed(InputAction.CallbackContext context)
@@ -85,6 +88,24 @@ namespace SpectateEnemy
             }  
         }
 
+        private void OnZoomOutPressed(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            if (!SpectatingEnemies) return;
+            zoomLevel += 0.1f;
+            if (zoomLevel > 10f)
+                zoomLevel = 10f;
+        }
+
+        private void OnZoomInPressed(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            if (!SpectatingEnemies) return;
+            zoomLevel -= 0.1f;
+            if (zoomLevel < 1f)
+                zoomLevel = 1f;
+        }
+
         private void LateUpdate()
         {
             if (SpectatingEnemies)
@@ -94,16 +115,19 @@ namespace SpectateEnemy
                     SpectatingEnemies = false;
                     return;
                 }
-                if (SpectatedEnemyIndex >= SpectatorList.Length)
-                {
-                    GetNextValidSpectatable();
-                    return;
-                }
                 Spectatable currentEnemy = SpectatorList.ElementAtOrDefault(SpectatedEnemyIndex);
                 if (currentEnemy == null)
                 {
                     GetNextValidSpectatable();
                     return;
+                }
+                if (currentEnemy.type == SpectatableType.Enemy || currentEnemy.type == SpectatableType.Masked)
+                {
+                    if (currentEnemy.enemyInstance != null && currentEnemy.enemyInstance.isEnemyDead)
+                    {
+                        GetNextValidSpectatable();
+                        return;
+                    }
                 }
                 Vector3? position = GetSpectatePosition(currentEnemy);
                 if (!position.HasValue)
@@ -115,12 +139,12 @@ namespace SpectateEnemy
                 {
                     TryFixName(ref currentEnemy);
                 }
-                HUDManager.Instance.localPlayer.spectateCameraPivot.position = position.Value + GetZoomDistance(currentEnemy);
+                GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.position = position.Value + Vector3.up * zoomLevel;
                 if (currentEnemy.type == SpectatableType.Masked && currentEnemy.maskedName != string.Empty)
-                    HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.maskedName + ")";
+                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.maskedName, zoomLevel);
                 else
-                    HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + currentEnemy.enemyName + ")";
-                Plugin.raycastSpectate.Invoke(HUDManager.Instance.localPlayer, []);
+                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.enemyName, zoomLevel);
+                Plugin.raycastSpectate.Invoke(GameNetworkManager.Instance.localPlayerController, []);
             }
         }
 
@@ -128,7 +152,7 @@ namespace SpectateEnemy
         {
             if (obj.type == SpectatableType.Enemy || obj.type == SpectatableType.Masked)
             {
-                EnemyAI enemy = obj.GetComponent<EnemyAI>();
+                EnemyAI enemy = obj.enemyInstance;
                 if (enemy != null)
                 {
                     return enemy.eye == null ? enemy.transform.position : enemy.eye.position;
@@ -151,16 +175,6 @@ namespace SpectateEnemy
                 Debug.LogError("[SpectateEnemy]: Error when spectating: no handler for SpectatableType " + obj.type);
             }
             return null;
-        }
-
-        private Vector3 GetZoomDistance(Spectatable obj)
-        {
-            if (obj.enemyName == "ForestGiant")
-                return Vector3.up * 3;
-            if (obj.enemyName == "MouthDog" || obj.enemyName == "Jester")
-                return Vector3.up * 2;
-            else
-                return Vector3.up;
         }
 
         private void TryFixName(ref Spectatable obj)
@@ -195,7 +209,7 @@ namespace SpectateEnemy
             SpectatingEnemies = !SpectatingEnemies;
             if (SpectatingEnemies)
             {
-                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None);
+                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => settings[x.enemyName]).ToArray();
                 if (SpectatorList.Length == 0)
                 {
                     SpectatingEnemies = false;
@@ -210,17 +224,11 @@ namespace SpectateEnemy
                     }
                     else
                     {
-                        List<Spectatable> matches = SpectatorList.Where(x => settings[x.enemyName]).ToList();
-                        if (matches.Count == 0)
-                        {
-                            Plugin.displaySpectatorTip.Invoke(HUDManager.Instance, ["No enemies to spectate"]);
-                            return;
-                        }
                         float closest = 999999f;
                         int index = 0;
-                        for (int i = 0; i < matches.Count; i++)
+                        for (int i = 0; i < SpectatorList.Length; i++)
                         {
-                            float dist = (matches[i].transform.position - __instance.spectatedPlayerScript.transform.position).sqrMagnitude;
+                            float dist = (SpectatorList[i].transform.position - __instance.spectatedPlayerScript.transform.position).sqrMagnitude;
                             if (dist < closest * closest)
                             {
                                 closest = dist;
@@ -230,36 +238,25 @@ namespace SpectateEnemy
                         SpectatedEnemyIndex = index;
                     }
                 }
-                else
-                {
-                    if (!settings[SpectatorList[SpectatedEnemyIndex].enemyName])
-                    {
-                        GetNextValidSpectatable();
-                    }
-                }
                 __instance.spectatedPlayerScript = null;
             }
             else
             {
                 __instance.spectatedPlayerScript = __instance.playersManager.allPlayerScripts.FirstOrDefault(x => !x.isPlayerDead && x.isPlayerControlled);
-                HUDManager.Instance.spectatingPlayerText.text = "(Spectating: " + __instance.spectatedPlayerScript.playerUsername + ")";
+                HUDManager.Instance.spectatingPlayerText.text = $"(Spectating: {__instance.spectatedPlayerScript.playerUsername})";
             }
         }
 
-        public void PopulateSettings(SelectableLevel level)
+        public void PopulateSettings()
         {
-            foreach (SpawnableEnemyWithRarity t in level.Enemies)
+            EnemyType[] allEnemies = Resources.FindObjectsOfTypeAll<EnemyType>();
+            foreach (EnemyType type in allEnemies)
             {
-                settings.TryAdd(t.enemyType.enemyName, true);
+                if (type.enemyName == "Red pill" || type.enemyName == "Lasso")
+                    continue;
+                settings.TryAdd(type.enemyName, !type.isDaytimeEnemy);
             }
-            foreach (SpawnableEnemyWithRarity t in level.OutsideEnemies)
-            {
-                settings.TryAdd(t.enemyType.enemyName, true);
-            }
-            foreach (SpawnableEnemyWithRarity t in level.DaytimeEnemies)
-            {
-                settings.TryAdd(t.enemyType.enemyName, false);
-            }
+
             settings.TryAdd("Landmine", false);
             settings.TryAdd("Turret", false);
 
@@ -278,9 +275,10 @@ namespace SpectateEnemy
                     {
                         string[] c = s.Split(':');
                         if (c.Length != 2) continue;
-                        if (settings.ContainsKey(c[0]))
+                        if (settings.ContainsKey(c[0])) {
                             if (bool.TryParse(c[1], out bool value))
                                 settings[c[0]] = value;
+                        }
                     }
                     Debug.LogWarning("[SpectateEnemies]: Config loaded");
                 }
@@ -292,9 +290,9 @@ namespace SpectateEnemy
             catch (Exception)
             {
                 Debug.LogWarning("[SpectateEnemies]: Config failed to load, using default values!");
-            }
+            } 
 
-            // AssertSettings();
+            AssertSettings();
         }
 
         private void OnApplicationQuit()
@@ -324,6 +322,7 @@ namespace SpectateEnemy
 
         private void GetNextValidSpectatable()
         {
+            SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => settings[x.enemyName]).ToArray();
             int enemiesChecked = 0;
             int current = SpectatedEnemyIndex;
             while (enemiesChecked < SpectatorList.Length)
@@ -333,10 +332,21 @@ namespace SpectateEnemy
                 {
                     current = 0;
                 }
-                if (settings[SpectatorList[current].enemyName])
+                Spectatable enemy = SpectatorList.ElementAtOrDefault(current);
+                if (enemy != null)
                 {
-                    SpectatedEnemyIndex = current;
-                    return;
+                    if (enemy.type == SpectatableType.Enemy || enemy.type == SpectatableType.Masked)
+                    {
+                        if (enemy.enemyInstance != null && enemy.enemyInstance.isEnemyDead)
+                        {
+                            continue;
+                        }
+                    }
+                    if (settings.ContainsKey(enemy.enemyName))
+                    {
+                        SpectatedEnemyIndex = current;
+                        return;
+                    }
                 }
                 enemiesChecked++;
             }

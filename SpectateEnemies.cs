@@ -339,6 +339,7 @@ namespace SpectateEnemy
                     {
                         if (enemy.enemyInstance != null && enemy.enemyInstance.isEnemyDead)
                         {
+                            enemiesChecked++;
                             continue;
                         }
                     }

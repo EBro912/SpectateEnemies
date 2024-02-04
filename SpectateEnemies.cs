@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using GameNetcodeStuff;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace SpectateEnemy
     {
         public static SpectateEnemies Instance;
 
-        private static readonly Dictionary<string, bool> settings = [];
+        private static readonly Dictionary<string, ConfigEntry<bool>> settings = [];
 
         private bool WindowOpen = false;
         private Rect window = new(10, 10, 500, 400);
@@ -22,7 +23,8 @@ namespace SpectateEnemy
         public int SpectatedEnemyIndex = -1;
         public bool SpectatingEnemies = false;
         public Spectatable[] SpectatorList;
-        public float zoomLevel = 1f;
+        public float ZoomLevel = 1f;
+        public ConfigEntry<bool> HideControls;
 
         private void Awake()
         {
@@ -33,6 +35,8 @@ namespace SpectateEnemy
             SetupKeybinds();
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            HideControls = Plugin.Configuration.Bind("Config", "Hide Controls", false, "Hides the controls toolip on the right hand side.");
         }
 
         private void SetupKeybinds()
@@ -92,18 +96,18 @@ namespace SpectateEnemy
         {
             if (!context.performed) return;
             if (!SpectatingEnemies) return;
-            zoomLevel += 0.1f;
-            if (zoomLevel > 10f)
-                zoomLevel = 10f;
+            ZoomLevel += 0.1f;
+            if (ZoomLevel > 10f)
+                ZoomLevel = 10f;
         }
 
         private void OnZoomInPressed(InputAction.CallbackContext context)
         {
             if (!context.performed) return;
             if (!SpectatingEnemies) return;
-            zoomLevel -= 0.1f;
-            if (zoomLevel < 1f)
-                zoomLevel = 1f;
+            ZoomLevel -= 0.1f;
+            if (ZoomLevel < 1f)
+                ZoomLevel = 1f;
         }
 
         private void LateUpdate()
@@ -139,12 +143,15 @@ namespace SpectateEnemy
                 {
                     TryFixName(ref currentEnemy);
                 }
-                GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.position = position.Value + Vector3.up * zoomLevel;
+
+                GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.position = position.Value;
                 if (currentEnemy.type == SpectatableType.Masked && currentEnemy.maskedName != string.Empty)
-                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.maskedName, zoomLevel);
+                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.maskedName, ZoomLevel);
                 else
-                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.enemyName, zoomLevel);
+                    HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.enemyName, ZoomLevel);
                 Plugin.raycastSpectate.Invoke(GameNetworkManager.Instance.localPlayerController, []);
+                // Thanks HalfyRed!
+                GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.GetComponentInChildren<Camera>().transform.localPosition = Vector3.back * (ZoomLevel + 0.5f);
             }
         }
 
@@ -209,7 +216,7 @@ namespace SpectateEnemy
             SpectatingEnemies = !SpectatingEnemies;
             if (SpectatingEnemies)
             {
-                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => settings[x.enemyName]).ToArray();
+                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(x.enemyName)).ToArray();
                 if (SpectatorList.Length == 0)
                 {
                     SpectatingEnemies = false;
@@ -254,12 +261,13 @@ namespace SpectateEnemy
             {
                 if (type.enemyName == "Red pill" || type.enemyName == "Lasso")
                     continue;
-                settings.TryAdd(type.enemyName, !type.isDaytimeEnemy);
+                settings.TryAdd(type.enemyName, Plugin.Configuration.Bind("Enemies", type.enemyName, !type.isDaytimeEnemy, "Enables spectating " + type.enemyName));
             }
 
-            settings.TryAdd("Landmine", false);
-            settings.TryAdd("Turret", false);
+            settings.TryAdd("Landmine", Plugin.Configuration.Bind("Enemies", "Landmine", false, "Enables spectating Landmines"));
+            settings.TryAdd("Turret", Plugin.Configuration.Bind("Enemies", "Turret", false, "Enables spectating Turrets"));
 
+            /*
             // TODO: this is terrible, improve
             try
             {
@@ -290,14 +298,15 @@ namespace SpectateEnemy
             catch (Exception)
             {
                 Debug.LogWarning("[SpectateEnemies]: Config failed to load, using default values!");
-            } 
+            } */
 
+            Debug.LogWarning("[SpectateEnemies]: Config loaded");
             AssertSettings();
         }
 
         private void OnApplicationQuit()
         {
-            StringBuilder sb = new();
+            /*StringBuilder sb = new();
             foreach (var s in settings)
             {
                 sb.Append(s.Key);
@@ -305,7 +314,8 @@ namespace SpectateEnemy
                 sb.Append(s.Value);
                 sb.AppendLine();
             }
-            File.WriteAllText(Paths.ConfigPath + "/SpectateEnemy.cfg", sb.ToString());
+            File.WriteAllText(Paths.ConfigPath + "/SpectateEnemy.cfg", sb.ToString());*/
+            Plugin.Configuration.Save();
             Debug.LogWarning("[SpectateEnemies]: Config saved");
         }
 
@@ -322,7 +332,7 @@ namespace SpectateEnemy
 
         private void GetNextValidSpectatable()
         {
-            SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => settings[x.enemyName]).ToArray();
+            SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(x.enemyName)).ToArray();
             int enemiesChecked = 0;
             int current = SpectatedEnemyIndex;
             while (enemiesChecked < SpectatorList.Length)
@@ -366,7 +376,7 @@ namespace SpectateEnemy
         public bool GetSetting(string name)
         {
             if (settings.ContainsKey(name))
-                return settings[name];
+                return settings[name].Value;
             return false;
         }
 
@@ -403,7 +413,7 @@ namespace SpectateEnemy
                 int y = 0;
                 foreach (string k in settings.Keys.ToList())
                 {
-                    settings[k] = GUI.Toggle(new Rect(10 + (150 * x), 60 + (30 * y), 150, 20), settings[k], k);
+                    settings[k].Value = GUI.Toggle(new Rect(10 + (150 * x), 60 + (30 * y), 150, 20), settings[k].Value, k);
                     x++;
                     if (x == 3)
                     {

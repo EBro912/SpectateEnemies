@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using GameNetcodeStuff;
 using HarmonyLib;
 using System.Reflection;
@@ -13,11 +14,14 @@ internal class Plugin : BaseUnityPlugin
     public static MethodInfo displaySpectatorTip = null;
 
     public static Inputs Inputs = new();
+    public static ConfigFile Configuration;
 
     private Harmony harmony;
 
     private void Awake()
     {
+        Configuration = Config;
+
         harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
 

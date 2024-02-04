@@ -6,7 +6,7 @@ namespace SpectateEnemy.Patches
     [HarmonyPatch(typeof(QuickMenuManager), "Start")]
     internal class QuickMenuManager_Patches
     {
-        private static void Postfix(QuickMenuManager __instance)
+        private static void Postfix()
         {
             if (SpectateEnemies.Instance == null)
             {

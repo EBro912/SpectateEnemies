@@ -30,11 +30,14 @@ namespace SpectateEnemy.Patches
                     string flashlightKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.FlashlightKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
                     string zoomOutKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.ZoomOutKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
                     string zoomInKey = InputControlPath.ToHumanReadableString(Plugin.Inputs.ZoomInKey.bindings[0].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
-                    // who needs to change the y position when u can just \n: sunglasses:
-                    if (SpectateEnemies.Instance.SpectatingEnemies)
-                        __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSpectate Players: [{swapKey}]\nFlashlight : [{flashlightKey}]\nZoom Out [{zoomOutKey}]\nZoom In [{zoomInKey}]\nConfig Menu : [{menuKey}]";
-                    else
-                        __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSpectate Enemies: [{swapKey}]\nFlashlight : [{flashlightKey}]\nConfig Menu : [{menuKey}]";
+                    if (!SpectateEnemies.Instance.HideControls.Value)
+                    {
+                        // who needs to change the y position when u can just \n: sunglasses:
+                        if (SpectateEnemies.Instance.SpectatingEnemies)
+                            __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSpectate Players: [{swapKey}]\nFlashlight : [{flashlightKey}]\nZoom Out : [{zoomOutKey}]\nZoom In : [{zoomInKey}]\nConfig Menu : [{menuKey}]";
+                        else
+                            __instance.holdButtonToEndGameEarlyText.text += $"\n\n\n\n\nSpectate Enemies: [{swapKey}]\nFlashlight : [{flashlightKey}]\nConfig Menu : [{menuKey}]";
+                    }
 
                 }
             }

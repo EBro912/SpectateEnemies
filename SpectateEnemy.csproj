@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>SpectateEnemy</AssemblyName>
     <Description>My first plugin</Description>
-    <Version>2.2.1</Version>
+    <Version>2.3.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -31,7 +31,7 @@
       <HintPath>F:\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="LethalCompanyInputUtils">
-      <HintPath>F:\SteamLibrary\steamapps\common\Lethal Company\BepInEx\plugins\Rune580-LethalCompany_InputUtils\LethalCompanyInputUtils.dll</HintPath>
+      <HintPath>F:\SteamLibrary\steamapps\common\Lethal Company\BepInEx\plugins\Rune580-LethalCompany_InputUtils\LethalCompanyInputUtils\LethalCompanyInputUtils.dll</HintPath>
     </Reference>
     <Reference Include="Unity.InputSystem">
       <HintPath>F:\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.InputSystem.dll</HintPath>

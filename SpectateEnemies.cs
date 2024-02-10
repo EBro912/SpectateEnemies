@@ -216,7 +216,7 @@ namespace SpectateEnemy
             SpectatingEnemies = !SpectatingEnemies;
             if (SpectatingEnemies)
             {
-                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(x.enemyName)).ToArray();
+                SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(SanitizeEnemyName(x.enemyName))).ToArray();
                 if (SpectatorList.Length == 0)
                 {
                     SpectatingEnemies = false;
@@ -261,44 +261,12 @@ namespace SpectateEnemy
             {
                 if (type.enemyName == "Red pill" || type.enemyName == "Lasso")
                     continue;
-                settings.TryAdd(type.enemyName, Plugin.Configuration.Bind("Enemies", type.enemyName, !type.isDaytimeEnemy, "Enables spectating " + type.enemyName));
+                string name = SanitizeEnemyName(type.enemyName);
+                settings.TryAdd(name, Plugin.Configuration.Bind("Enemies", name, !type.isDaytimeEnemy, "Enables spectating " + name));
             }
 
             settings.TryAdd("Landmine", Plugin.Configuration.Bind("Enemies", "Landmine", false, "Enables spectating Landmines"));
             settings.TryAdd("Turret", Plugin.Configuration.Bind("Enemies", "Turret", false, "Enables spectating Turrets"));
-
-            /*
-            // TODO: this is terrible, improve
-            try
-            {
-                if (File.Exists(Paths.ConfigPath + "/SpectateEnemy.cfg"))
-                {
-                    string[] config = File.ReadAllLines(Paths.ConfigPath + "/SpectateEnemy.cfg");
-                    if (config[3] == "[Config]")
-                    {
-                        Debug.LogWarning("[SpectateEnemies]: Config not found, using default values!");
-                        return;
-                    }
-                    foreach (string s in config)
-                    {
-                        string[] c = s.Split(':');
-                        if (c.Length != 2) continue;
-                        if (settings.ContainsKey(c[0])) {
-                            if (bool.TryParse(c[1], out bool value))
-                                settings[c[0]] = value;
-                        }
-                    }
-                    Debug.LogWarning("[SpectateEnemies]: Config loaded");
-                }
-                else
-                {
-                    Debug.LogWarning("[SpectateEnemies]: Config not found, using default values!");
-                }
-            }
-            catch (Exception)
-            {
-                Debug.LogWarning("[SpectateEnemies]: Config failed to load, using default values!");
-            } */
 
             Debug.LogWarning("[SpectateEnemies]: Config loaded");
             AssertSettings();
@@ -306,15 +274,6 @@ namespace SpectateEnemy
 
         private void OnApplicationQuit()
         {
-            /*StringBuilder sb = new();
-            foreach (var s in settings)
-            {
-                sb.Append(s.Key);
-                sb.Append(':');
-                sb.Append(s.Value);
-                sb.AppendLine();
-            }
-            File.WriteAllText(Paths.ConfigPath + "/SpectateEnemy.cfg", sb.ToString());*/
             Plugin.Configuration.Save();
             Debug.LogWarning("[SpectateEnemies]: Config saved");
         }
@@ -330,9 +289,14 @@ namespace SpectateEnemy
             return false;
         }
 
+        private string SanitizeEnemyName(string enemyName)
+        {
+            return enemyName.Replace("\\", "").Replace("\"", "").Replace("'", "").Replace("[", "").Replace("]", "");
+        }
+
         private void GetNextValidSpectatable()
         {
-            SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(x.enemyName)).ToArray();
+            SpectatorList = FindObjectsByType<Spectatable>(FindObjectsSortMode.None).Where(x => GetSetting(SanitizeEnemyName(x.enemyName))).ToArray();
             int enemiesChecked = 0;
             int current = SpectatedEnemyIndex;
             while (enemiesChecked < SpectatorList.Length)
@@ -353,7 +317,7 @@ namespace SpectateEnemy
                             continue;
                         }
                     }
-                    if (settings.ContainsKey(enemy.enemyName))
+                    if (settings.ContainsKey(SanitizeEnemyName(enemy.enemyName)))
                     {
                         SpectatedEnemyIndex = current;
                         return;
@@ -369,7 +333,7 @@ namespace SpectateEnemy
         {
             foreach (var t in settings)
             {
-                Debug.LogWarning($"{t.Key} : {t.Value}");
+                Debug.LogWarning($"{t.Key} : {t.Value.Value}");
             }
         }
 

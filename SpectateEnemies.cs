@@ -1,11 +1,7 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
 using GameNetcodeStuff;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,6 +15,7 @@ namespace SpectateEnemy
 
         private bool WindowOpen = false;
         private Rect window = new(10, 10, 500, 400);
+        private Vector2 scrollPos = Vector2.zero;
 
         public int SpectatedEnemyIndex = -1;
         public bool SpectatingEnemies = false;
@@ -125,7 +122,7 @@ namespace SpectateEnemy
                     GetNextValidSpectatable();
                     return;
                 }
-                if (currentEnemy.type == SpectatableType.Enemy || currentEnemy.type == SpectatableType.Masked)
+                if (currentEnemy.type == SpectatableType.Enemy || currentEnemy.type == SpectatableType.Masked || currentEnemy.type == SpectatableType.GhostGirl)
                 {
                     if (currentEnemy.enemyInstance != null && currentEnemy.enemyInstance.isEnemyDead)
                     {
@@ -147,6 +144,21 @@ namespace SpectateEnemy
                 GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.position = position.Value;
                 if (currentEnemy.type == SpectatableType.Masked && currentEnemy.maskedName != string.Empty)
                     HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.maskedName, ZoomLevel);
+                else if (currentEnemy.type == SpectatableType.GhostGirl)
+                {
+                    // TODO: improve
+                    DressGirlAI ghost = currentEnemy.gameObject.GetComponent<DressGirlAI>();
+                    ghost.EnableEnemyMesh(true, true);
+                    PlayerControllerB target = ghost.targetPlayer;
+                    if (target != null)
+                    {
+                        HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]\n(Targeting: {2})", currentEnemy.maskedName, ZoomLevel, target.playerUsername);
+                    }
+                    else
+                    {
+                        HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]\n(No Target)", currentEnemy.maskedName, ZoomLevel);
+                    }
+                }
                 else
                     HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.enemyName, ZoomLevel);
                 Plugin.raycastSpectate.Invoke(GameNetworkManager.Instance.localPlayerController, []);
@@ -157,7 +169,7 @@ namespace SpectateEnemy
 
         private Vector3? GetSpectatePosition(Spectatable obj)
         {
-            if (obj.type == SpectatableType.Enemy || obj.type == SpectatableType.Masked)
+            if (obj.type == SpectatableType.Enemy || obj.type == SpectatableType.Masked || obj.type == SpectatableType.GhostGirl)
             {
                 EnemyAI enemy = obj.enemyInstance;
                 if (enemy != null)
@@ -272,12 +284,6 @@ namespace SpectateEnemy
             AssertSettings();
         }
 
-        private void OnApplicationQuit()
-        {
-            Plugin.Configuration.Save();
-            Debug.LogWarning("[SpectateEnemies]: Config saved");
-        }
-
         public bool SpectateNextEnemy()
         {
             if (SpectatorList.Length == 0)
@@ -309,7 +315,7 @@ namespace SpectateEnemy
                 Spectatable enemy = SpectatorList.ElementAtOrDefault(current);
                 if (enemy != null)
                 {
-                    if (enemy.type == SpectatableType.Enemy || enemy.type == SpectatableType.Masked)
+                    if (enemy.type == SpectatableType.Enemy || enemy.type == SpectatableType.Masked || enemy.type == SpectatableType.GhostGirl)
                     {
                         if (enemy.enemyInstance != null && enemy.enemyInstance.isEnemyDead)
                         {
@@ -372,6 +378,7 @@ namespace SpectateEnemy
         {
             if (windowID == 0)
             {
+                scrollPos = GUI.BeginScrollView(new Rect(5, 20, 490, 370), scrollPos, new Rect(5, 20, 490, 370), false, true);
                 GUI.Label(new Rect(10, 30, 500, 100), "Tip: Checking the box next to an enemy name will enable spectating it.");
                 int x = 0;
                 int y = 0;
@@ -385,6 +392,7 @@ namespace SpectateEnemy
                         y++;
                     }
                 }
+                GUI.EndScrollView(true);
             }
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
         }

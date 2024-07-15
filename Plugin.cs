@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace SpectateEnemy;
 
-[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInPlugin("SpectateEnemy", "SpectateEnemy", "2.5.0")]
 [BepInDependency("com.rune580.LethalCompanyInputUtils", BepInDependency.DependencyFlags.HardDependency)]
 internal class Plugin : BaseUnityPlugin
 {
@@ -22,11 +22,11 @@ internal class Plugin : BaseUnityPlugin
     {
         Configuration = Config;
 
-        harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+        harmony = new Harmony("SpectateEnemy");
         harmony.PatchAll();
 
         raycastSpectate = AccessTools.Method(typeof(PlayerControllerB), "RaycastSpectateCameraAroundPivot");
         displaySpectatorTip = AccessTools.Method(typeof(HUDManager), "DisplaySpectatorTip");
-        Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} loaded!");
+        Logger.LogInfo("SpectateEnemy loaded!");
     }
 }

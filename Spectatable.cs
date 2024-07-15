@@ -16,6 +16,7 @@ namespace SpectateEnemy
         Enemy,
         Turret,
         Landmine,
-        Masked
+        Masked,
+        GhostGirl
     }
 }

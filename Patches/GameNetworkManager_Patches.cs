@@ -8,9 +8,12 @@ namespace SpectateEnemy.Patches
     {
         private static void Postfix()
         {
-            SpectateEnemies.Instance.SpectatedEnemyIndex = -1;
-            SpectateEnemies.Instance.SpectatingEnemies = false;
-            SpectateEnemies.Instance.Hide();
+            if (SpectateEnemies.Instance != null)
+            {
+                SpectateEnemies.Instance.SpectatedEnemyIndex = -1;
+                SpectateEnemies.Instance.SpectatingEnemies = false;
+                SpectateEnemies.Instance.Hide();
+            }
         }
     }
 

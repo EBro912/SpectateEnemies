@@ -1,6 +1,8 @@
 # SpectateEnemies
  Allows you to spectate enemies in Lethal Company.
 
+ [Thunderstore](https://thunderstore.io/c/lethal-company/p/AllToasters/SpectateEnemies/)
+
 ## Usage
 When dead, pressing your "Swap" key (default: E) will swap between spectating players and spectating enemies. When spectating either side, you can left click to move to the next player or enemy as normal. The mod will also remember your last spectated enemy, as long as they are still alive.
 

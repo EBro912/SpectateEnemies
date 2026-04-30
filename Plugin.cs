@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace SpectateEnemy;
 
-[BepInPlugin("SpectateEnemy", "SpectateEnemy", "2.5.0")]
+[BepInPlugin("SpectateEnemy", "SpectateEnemy", "2.9.1")]
 [BepInDependency("com.rune580.LethalCompanyInputUtils", BepInDependency.DependencyFlags.HardDependency)]
 internal class Plugin : BaseUnityPlugin
 {

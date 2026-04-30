@@ -86,7 +86,7 @@ namespace SpectateEnemy
                         light.enabled = !light.enabled;
                     }
                 }
-            }  
+            }
         }
 
         private void OnZoomOutPressed(InputAction.CallbackContext context)
@@ -143,12 +143,14 @@ namespace SpectateEnemy
 
                 GameNetworkManager.Instance.localPlayerController.spectateCameraPivot.position = position.Value;
                 if (currentEnemy.type == SpectatableType.Masked && currentEnemy.maskedName != string.Empty)
+                {
                     HUDManager.Instance.spectatingPlayerText.text = string.Format("(Spectating: {0}) [{1:F1}x]", currentEnemy.maskedName, ZoomLevel);
+                }
                 else if (currentEnemy.type == SpectatableType.GhostGirl)
                 {
                     // TODO: improve
                     DressGirlAI ghost = currentEnemy.gameObject.GetComponent<DressGirlAI>();
-                    ghost.EnableEnemyMesh(true, true);
+                    ghost.EnableEnemyMesh(true, true, true);
                     PlayerControllerB target = ghost.targetPlayer;
                     if (target != null)
                     {
@@ -368,7 +370,7 @@ namespace SpectateEnemy
         private void OnGUI()
         {
             if (WindowOpen)
-            { 
+            {
                 GUI.color = Color.gray;
                 window = GUI.Window(0, window, DrawGUI, "Spectator Settings");
             }
